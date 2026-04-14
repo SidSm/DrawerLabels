@@ -1,0 +1,12 @@
+# Rules evaluated top-to-bottom; first matching prefix wins.
+# Loader sorts by prefix length descending — file order does not matter.
+rules:
+  - prefix: "M4"
+    color: "#2e7d32"   # green
+  - prefix: "M3"
+    color: "#104f97"   # blue
+  - prefix: "M2.5"
+    color: "#ef6c00"   # orange
+  - prefix: "M2"
+    color: "#c62828"   # red
+default: null          # null = no color square drawn

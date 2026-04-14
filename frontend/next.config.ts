@@ -1,0 +1,22 @@
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
+  async rewrites() {
+    return [
+      {
+        source: "/api/:path*",
+        destination: "http://localhost:8000/api/:path*",
+      },
+      {
+        source: "/pics/:path*",
+        destination: "http://localhost:8000/pics/:path*",
+      },
+      {
+        source: "/uploads/:path*",
+        destination: "http://localhost:8000/uploads/:path*",
+      },
+    ];
+  },
+};
+
+export default nextConfig;

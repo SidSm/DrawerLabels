@@ -1,0 +1,16 @@
+@import "tailwindcss";
+
+:root {
+  --color-primary: #1565c0;
+  --color-accent: #ef6c00;
+}
+
+body {
+  font-family: system-ui, sans-serif;
+}
+
+@media print {
+  body * { visibility: hidden; }
+  #print-area, #print-area * { visibility: visible; }
+  #print-area { position: fixed; top: 0; left: 0; }
+}
