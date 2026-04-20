@@ -56,7 +56,7 @@ def type_image(type_name: str):
         from fastapi import HTTPException
         raise HTTPException(status_code=404)
     pics = BASE_DIR / "pics"
-    for ext in ("png", "jpg", "jpeg"):
+    for ext in ("png", "jpg", "jpeg", "webp"):
         path = pics / f"{type_name}.{ext}"
         if path.exists():
             return FileResponse(path)

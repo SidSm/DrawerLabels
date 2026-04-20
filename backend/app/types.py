@@ -5,6 +5,7 @@ TYPES = [
     "bolt-black-socket",
     "bolt-black-flat",
     "bolt-black-pan",
+    ""
     "nut",
     "locknut",
     "inserts",
@@ -20,7 +21,7 @@ TYPES = [
 def _resolve_type_image(type_name: str) -> str:
     from pathlib import Path
     pics = Path(__file__).parent.parent / "pics"
-    for ext in ("png", "jpg", "jpeg"):
+    for ext in ("png", "jpg", "jpeg", "webp"):
         if (pics / f"{type_name}.{ext}").exists():
             return f"pics/{type_name}.{ext}"
     return f"pics/{type_name}.png"  # fallback (may 404, but shows intent)

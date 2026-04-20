@@ -16,6 +16,7 @@ export default function PartForm({ initial }: Props) {
   const [customImagePath, setCustomImagePath] = useState(initial?.custom_image_path ?? "");
   const [urls, setUrls] = useState<string[]>(initial?.urls.map((u) => u.url) ?? [""]);
   const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -26,11 +27,12 @@ export default function PartForm({ initial }: Props) {
 
   const handleImageUpload = async (file: File) => {
     setUploading(true);
+    setUploadError("");
     try {
       const path = await api.uploadImage(file);
       setCustomImagePath(path);
     } catch (e) {
-      setError(String(e));
+      setUploadError(String(e));
     } finally {
       setUploading(false);
     }
@@ -86,12 +88,49 @@ export default function PartForm({ initial }: Props) {
       </div>
 
       <div>
-        <label className="block text-sm font-medium mb-1">Custom image</label>
-        <input type="file" accept="image/*"
-          onChange={(e) => e.target.files?.[0] && handleImageUpload(e.target.files[0])} />
-        {uploading && <p className="text-sm text-gray-500">Uploading…</p>}
+        <label htmlFor="custom-image" className="block text-sm font-medium mb-1">
+          Custom image
+        </label>
+        <div className="flex items-center gap-3">
+          <label
+            htmlFor="custom-image"
+            className="inline-block cursor-pointer bg-[var(--color-primary)] text-white px-4 py-2 rounded hover:opacity-90 text-sm"
+          >
+            {uploading ? "Uploading…" : customImagePath ? "Replace image" : "Choose image"}
+          </label>
+          {customImagePath && (
+            <button
+              type="button"
+              onClick={() => setCustomImagePath("")}
+              className="text-sm text-red-500 hover:underline"
+            >
+              Remove
+            </button>
+          )}
+        </div>
+        <input
+          id="custom-image"
+          type="file"
+          accept="image/*"
+          className="sr-only"
+          onChange={(e) => {
+            const f = e.target.files?.[0];
+            if (f) handleImageUpload(f);
+            e.target.value = "";
+          }}
+        />
         {customImagePath && (
-          <p className="text-xs text-gray-500 mt-1">Current: {customImagePath}</p>
+          <div className="mt-2 flex items-center gap-2">
+            <img
+              src={`/${customImagePath}`}
+              alt="preview"
+              className="w-16 h-16 object-contain border rounded bg-white"
+            />
+            <p className="text-xs text-gray-500 break-all">{customImagePath}</p>
+          </div>
+        )}
+        {uploadError && (
+          <p className="text-red-600 text-sm mt-1">Upload failed: {uploadError}</p>
         )}
       </div>
 

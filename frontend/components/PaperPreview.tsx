@@ -12,7 +12,6 @@ interface Props {
   paperH: number;
   marginMm: number;
   gapMm: number;
-  baseUrl: string;
 }
 
 export default function PaperPreview({
@@ -20,7 +19,6 @@ export default function PaperPreview({
   labelW, labelH,
   paperW, paperH,
   marginMm, gapMm,
-  baseUrl,
 }: Props) {
   const { cols, rows, pages } = useMemo(() => {
     const usableW = paperW - marginMm * 2;
@@ -73,10 +71,8 @@ export default function PaperPreview({
                     type={part.type}
                     customImagePath={part.custom_image_path}
                     color={colors[part.id] ?? null}
-                    partId={part.id}
                     widthMm={labelW}
                     heightMm={labelH}
-                    baseUrl={baseUrl}
                   />
                 </div>
               );

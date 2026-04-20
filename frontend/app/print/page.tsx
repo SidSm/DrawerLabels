@@ -19,12 +19,6 @@ function PrintContent() {
   const [marginMm, setMarginMm] = useState(5);
   const [gapMm, setGapMm] = useState(2);
 
-  const [baseUrl, setBaseUrl] = useState("");
-
-  useEffect(() => {
-    setBaseUrl(window.location.origin);
-  }, []);
-
   useEffect(() => {
     if (!ids.length) { setLoading(false); return; }
     Promise.all(ids.map((id) => api.parts.get(id)))
@@ -97,7 +91,6 @@ function PrintContent() {
           paperH={paperH}
           marginMm={marginMm}
           gapMm={gapMm}
-          baseUrl={baseUrl}
         />
       )}
     </div>

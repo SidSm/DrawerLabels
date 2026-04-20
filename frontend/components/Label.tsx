@@ -6,11 +6,8 @@ export interface LabelProps {
   type: string;
   customImagePath: string | null;
   color: string | null;
-  partId: number;
   widthMm?: number;
   heightMm?: number;
-  /** Base URL for QR data, defaults to window.location.origin */
-  baseUrl?: string;
 }
 
 const PAD = 1;
@@ -25,13 +22,10 @@ export default function Label({
   type,
   customImagePath,
   color,
-  partId,
   widthMm = 40,
   heightMm = 20,
-  baseUrl,
 }: LabelProps) {
-  const base = baseUrl ?? (typeof window !== "undefined" ? window.location.origin : "");
-  const qrTarget = `${base}/p/${partId}`;
+  const qrTarget = `${title}\n${shortDescription}`;
   const qrSrc = `/api/qr?data=${encodeURIComponent(qrTarget)}`;
 
   const imageSrc = customImagePath
