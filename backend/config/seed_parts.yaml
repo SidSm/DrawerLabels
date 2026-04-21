@@ -1,0 +1,21 @@
+# Seed config for DB populator. Edit freely; script skips rows that already exist
+# (dedupe key = title + type). Lengths in mm.
+
+bolts:
+  # Each finish becomes a separate part with type = bolt-<finish>.
+  finishes:
+    - socket         # bolt-socket
+    - black-socket   # bolt-black-socket
+    - flat           # bolt-flat
+  # DIN-standard length subset per thread size.
+  sizes:
+    M2:   [4, 5, 6, 8, 10, 12, 16, 18, 20]
+    M2.5: [4, 5, 6, 8, 10, 12, 16, 20, 25, 30]
+    M3:   [6, 8, 10, 12, 16, 18, 20, 25, 30, 35, 40]
+    M4:   [6, 8, 10, 12, 16, 20, 25, 30, 35, 40]
+
+nuts:
+  sizes: [M2, M2.5, M3, M4]
+
+locknuts:
+  sizes: [M2, M2.5, M3, M4]

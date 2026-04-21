@@ -69,4 +69,16 @@ export const api = {
     return data.path as string;
   },
   qrUrl: (data: string) => `${BASE}/qr?data=${encodeURIComponent(data)}`,
+  scan: {
+    resolve: (payload: string) =>
+      req<{ id: number; title: string; short_description: string; type: string; urls: string[] }>(
+        "/scan/resolve",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ payload }),
+        },
+      ),
+    exportUrl: "/api/scan/export",
+  },
 };

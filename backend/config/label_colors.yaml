@@ -1,6 +1,8 @@
 # Rules evaluated top-to-bottom; first matching prefix wins.
 # Loader sorts by prefix length descending — file order does not matter.
 rules:
+  - prefix: "M5"
+    color: "#eb34cc"   # purple
   - prefix: "M4"
     color: "#2e7d32"   # green
   - prefix: "M3"

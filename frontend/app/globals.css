@@ -10,7 +10,19 @@ body {
 }
 
 @media print {
-  body * { visibility: hidden; }
-  #print-area, #print-area * { visibility: visible; }
-  #print-area { position: fixed; top: 0; left: 0; }
+  @page { margin: 0; }
+  body { margin: 0; background: white; }
+  body > header,
+  .print\:hidden { display: none !important; }
+  main { padding: 0 !important; max-width: none !important; margin: 0 !important; }
+  #print-area > div {
+    margin: 0 !important;
+    box-shadow: none !important;
+    page-break-after: always;
+    break-after: page;
+  }
+  #print-area > div:last-child {
+    page-break-after: auto;
+    break-after: auto;
+  }
 }

@@ -3,6 +3,8 @@ import { useMemo } from "react";
 import Label from "./Label";
 import type { Part } from "@/lib/api";
 
+export type DuplexFlip = "long" | "short";
+
 interface Props {
   parts: Part[];
   colors: Record<number, string | null>;
@@ -12,6 +14,7 @@ interface Props {
   paperH: number;
   marginMm: number;
   gapMm: number;
+  duplexFlip?: DuplexFlip;
 }
 
 export default function PaperPreview({
@@ -19,6 +22,7 @@ export default function PaperPreview({
   labelW, labelH,
   paperW, paperH,
   marginMm, gapMm,
+  duplexFlip = "long",
 }: Props) {
   const { cols, rows, pages } = useMemo(() => {
     const usableW = paperW - marginMm * 2;
@@ -32,13 +36,32 @@ export default function PaperPreview({
 
   const perPage = cols * rows;
 
+  const frontPos = (i: number) => {
+    const row = Math.floor(i / cols);
+    const col = i % cols;
+    return {
+      x: marginMm + col * (labelW + gapMm),
+      y: marginMm + row * (labelH + gapMm),
+    };
+  };
+
+  const backPos = (i: number) => {
+    const { x, y } = frontPos(i);
+    if (duplexFlip === "long") return { x: paperW - x - labelW, y };
+    return { x, y: paperH - y - labelH };
+  };
+
+  const totalSides = pages * 2;
+
   return (
     <div id="print-area">
-      {Array.from({ length: pages }).map((_, pageIdx) => {
+      {Array.from({ length: totalSides }).map((_, sideIdx) => {
+        const pageIdx = Math.floor(sideIdx / 2);
+        const isBack = sideIdx % 2 === 1;
         const pageParts = parts.slice(pageIdx * perPage, (pageIdx + 1) * perPage);
         return (
           <div
-            key={pageIdx}
+            key={sideIdx}
             style={{
               width: `${paperW}mm`,
               height: `${paperH}mm`,
@@ -46,14 +69,11 @@ export default function PaperPreview({
               background: "white",
               boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
               marginBottom: "8mm",
-              pageBreakAfter: pageIdx < pages - 1 ? "always" : "auto",
+              pageBreakAfter: sideIdx < totalSides - 1 ? "always" : "auto",
             }}
           >
             {pageParts.map((part, i) => {
-              const row = Math.floor(i / cols);
-              const col = i % cols;
-              const x = marginMm + col * (labelW + gapMm);
-              const y = marginMm + row * (labelH + gapMm);
+              const { x, y } = isBack ? backPos(i) : frontPos(i);
               return (
                 <div
                   key={part.id}
@@ -71,8 +91,10 @@ export default function PaperPreview({
                     type={part.type}
                     customImagePath={part.custom_image_path}
                     color={colors[part.id] ?? null}
+                    partId={part.id}
                     widthMm={labelW}
                     heightMm={labelH}
+                    side={isBack ? "back" : "front"}
                   />
                 </div>
               );

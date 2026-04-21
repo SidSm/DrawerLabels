@@ -1,0 +1,9 @@
+{
+	auto_https disable_redirects
+	local_certs
+	skip_install_trust
+}
+
+https://192.168.11.31:8443 {
+	reverse_proxy localhost:3000
+}

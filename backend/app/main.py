@@ -8,7 +8,7 @@ from fastapi.responses import JSONResponse, RedirectResponse, FileResponse
 
 from app.db import create_db
 from app.color_rules import color_for_title, reload as reload_colors
-from app.routers import parts, uploads, qr, detail
+from app.routers import parts, uploads, qr, detail, scan
 
 BASE_DIR = Path(__file__).parent.parent
 
@@ -25,6 +25,7 @@ app.include_router(parts.router)
 app.include_router(uploads.router)
 app.include_router(qr.router)
 app.include_router(detail.router)
+app.include_router(scan.router)
 
 app.mount("/pics", StaticFiles(directory=str(BASE_DIR / "pics")), name="pics")
 app.mount("/uploads", StaticFiles(directory=str(BASE_DIR / "uploads")), name="uploads")

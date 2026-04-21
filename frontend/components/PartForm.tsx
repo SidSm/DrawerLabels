@@ -8,6 +8,22 @@ interface Props {
   initial?: Part;
 }
 
+const DESC_MAX_WORDS = 2;
+const DESC_MAX_WORD_CHARS = 12;
+
+function validateDesc(desc: string): string | null {
+  const trimmed = desc.trim();
+  if (!trimmed) return null;
+  const words = trimmed.split(/\s+/);
+  if (words.length > DESC_MAX_WORDS) {
+    return `Max ${DESC_MAX_WORDS} words.`;
+  }
+  if (words.some((w) => w.length > DESC_MAX_WORD_CHARS)) {
+    return `Each word max ${DESC_MAX_WORD_CHARS} chars.`;
+  }
+  return null;
+}
+
 export default function PartForm({ initial }: Props) {
   const router = useRouter();
   const [title, setTitle] = useState(initial?.title ?? "");
@@ -19,6 +35,7 @@ export default function PartForm({ initial }: Props) {
   const [uploadError, setUploadError] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const descError = validateDesc(desc);
 
   const updateUrl = (i: number, v: string) =>
     setUrls((prev) => prev.map((u, idx) => (idx === i ? v : u)));
@@ -40,6 +57,7 @@ export default function PartForm({ initial }: Props) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (descError) { setError(descError); return; }
     setSaving(true);
     setError("");
     try {
@@ -77,9 +95,12 @@ export default function PartForm({ initial }: Props) {
       </div>
 
       <div>
-        <label className="block text-sm font-medium mb-1">Short description</label>
+        <label className="block text-sm font-medium mb-1">
+          Short description <span className="text-gray-400 font-normal">(max 2 words, 12 chars each)</span>
+        </label>
         <input required className="border rounded px-2 py-1 w-full"
           value={desc} onChange={(e) => setDesc(e.target.value)} />
+        {descError && <p className="text-red-600 text-xs mt-1">{descError}</p>}
       </div>
 
       <div>
@@ -154,7 +175,7 @@ export default function PartForm({ initial }: Props) {
       </div>
 
       <div className="flex gap-3 pt-2">
-        <button type="submit" disabled={saving}
+        <button type="submit" disabled={saving || !!descError}
           className="bg-[var(--color-primary)] text-white px-4 py-2 rounded hover:opacity-90 disabled:opacity-50">
           {saving ? "Saving…" : initial ? "Save changes" : "Create part"}
         </button>

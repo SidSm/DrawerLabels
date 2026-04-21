@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import PaperPreview from "@/components/PaperPreview";
+import PaperPreview, { type DuplexFlip } from "@/components/PaperPreview";
 import { api, type Part } from "@/lib/api";
 
 function PrintContent() {
@@ -18,6 +18,7 @@ function PrintContent() {
   const [paperH, setPaperH] = useState(297);
   const [marginMm, setMarginMm] = useState(5);
   const [gapMm, setGapMm] = useState(2);
+  const [duplexFlip, setDuplexFlip] = useState<DuplexFlip>("long");
 
   useEffect(() => {
     if (!ids.length) { setLoading(false); return; }
@@ -71,6 +72,15 @@ function PrintContent() {
           <input type="number" className="block border rounded px-2 py-1 w-20"
             value={gapMm} onChange={(e) => setGapMm(Number(e.target.value))} />
         </label>
+        <label className="text-sm">
+          Duplex flip
+          <select className="block border rounded px-2 py-1"
+            value={duplexFlip}
+            onChange={(e) => setDuplexFlip(e.target.value as DuplexFlip)}>
+            <option value="long">Long edge (book)</option>
+            <option value="short">Short edge (tablet)</option>
+          </select>
+        </label>
         <button
           onClick={() => window.print()}
           className="bg-[var(--color-accent)] text-white px-5 py-2 rounded hover:opacity-90"
@@ -91,6 +101,7 @@ function PrintContent() {
           paperH={paperH}
           marginMm={marginMm}
           gapMm={gapMm}
+          duplexFlip={duplexFlip}
         />
       )}
     </div>

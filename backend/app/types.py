@@ -5,7 +5,6 @@ TYPES = [
     "bolt-black-socket",
     "bolt-black-flat",
     "bolt-black-pan",
-    ""
     "nut",
     "locknut",
     "inserts",
