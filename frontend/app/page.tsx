@@ -19,7 +19,7 @@ export default function HomePage() {
     if (!q) return parts;
     return parts.filter((p) =>
       p.title.toLowerCase().includes(q) ||
-      p.short_description.toLowerCase().includes(q) ||
+      (p.short_description ?? "").toLowerCase().includes(q) ||
       p.type.toLowerCase().includes(q),
     );
   }, [parts, query]);

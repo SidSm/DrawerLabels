@@ -15,6 +15,8 @@ interface Props {
   marginMm: number;
   gapMm: number;
   duplexFlip?: DuplexFlip;
+  descYOffset?: number;
+  qrYOffset?: number;
 }
 
 export default function PaperPreview({
@@ -23,6 +25,8 @@ export default function PaperPreview({
   paperW, paperH,
   marginMm, gapMm,
   duplexFlip = "long",
+  descYOffset = 0,
+  qrYOffset = 0,
 }: Props) {
   const { cols, rows, pages } = useMemo(() => {
     const usableW = paperW - marginMm * 2;
@@ -95,6 +99,8 @@ export default function PaperPreview({
                     widthMm={labelW}
                     heightMm={labelH}
                     side={isBack ? "back" : "front"}
+                    descYOffset={descYOffset}
+                    qrYOffset={qrYOffset}
                   />
                 </div>
               );

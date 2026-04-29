@@ -8,7 +8,7 @@ export interface PartURL {
 export interface Part {
   id: number;
   title: string;
-  short_description: string;
+  short_description: string | null;
   type: string;
   custom_image_path: string | null;
   created_at: string;
@@ -18,7 +18,7 @@ export interface Part {
 
 export interface PartCreate {
   title: string;
-  short_description: string;
+  short_description: string | null;
   type: string;
   custom_image_path?: string | null;
   urls: string[];
@@ -26,7 +26,7 @@ export interface PartCreate {
 
 export interface PartUpdate {
   title?: string;
-  short_description?: string;
+  short_description?: string | null;
   type?: string;
   custom_image_path?: string | null;
   urls?: string[];
@@ -71,7 +71,7 @@ export const api = {
   qrUrl: (data: string) => `${BASE}/qr?data=${encodeURIComponent(data)}`,
   scan: {
     resolve: (payload: string) =>
-      req<{ id: number; title: string; short_description: string; type: string; urls: string[] }>(
+      req<{ id: number; title: string; short_description: string | null; type: string; urls: string[] }>(
         "/scan/resolve",
         {
           method: "POST",

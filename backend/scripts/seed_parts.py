@@ -18,7 +18,7 @@ CONFIG_PATH = BACKEND_DIR / "config" / "seed_parts.yaml"
 
 FINISH_LABEL = {
     "socket": "Socket head",
-    "black-socket": "Black socket head",
+    "black-socket": "Black socket",
     "flat": "Flat head",
     "pan": "Pan head",
 }
@@ -29,8 +29,7 @@ def bolt_rows(cfg: dict) -> Iterable[tuple[str, str, str]]:
     sizes = cfg["bolts"]["sizes"]
     for finish in finishes:
         ptype = f"bolt-{finish}"
-        label = FINISH_LABEL.get(finish, finish.replace("-", " ").capitalize())
-        desc = f"{label} bolt"
+        desc = FINISH_LABEL.get(finish, finish.replace("-", " ").capitalize())
         for thread, lengths in sizes.items():
             for length in lengths:
                 title = f"{thread}x{length}"
@@ -44,7 +43,7 @@ def nut_rows(cfg: dict) -> Iterable[tuple[str, str, str]]:
 
 def locknut_rows(cfg: dict) -> Iterable[tuple[str, str, str]]:
     for thread in cfg["locknuts"]["sizes"]:
-        yield thread, "locknut", "Nylon lock nut"
+        yield thread, "locknut", "Lock nut"
 
 
 def seed(session: Session, rows: Iterable[tuple[str, str, str]], category: str) -> tuple[int, int]:

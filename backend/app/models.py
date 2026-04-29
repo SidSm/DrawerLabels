@@ -13,7 +13,7 @@ class PartURL(SQLModel, table=True):
 class Part(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     title: str
-    short_description: str
+    short_description: Optional[str] = None
     type: str
     custom_image_path: Optional[str] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)

@@ -1,8 +1,9 @@
 "use client";
+import { QRCodeSVG } from "qrcode.react";
 
 export interface LabelProps {
   title: string;
-  shortDescription: string;
+  shortDescription: string | null;
   type: string;
   customImagePath: string | null;
   color: string | null;
@@ -10,6 +11,8 @@ export interface LabelProps {
   widthMm?: number;
   heightMm?: number;
   side?: "front" | "back";
+  descYOffset?: number;
+  qrYOffset?: number;
 }
 
 const PAD = 1;
@@ -28,15 +31,16 @@ export default function Label({
   color,
   partId,
   widthMm = 40,
-  heightMm = 20,
+  heightMm = 18,
   side = "front",
+  descYOffset = 0,
+  qrYOffset = 0,
 }: LabelProps) {
   if (side === "back") {
-    const qrTarget = `${partId}\n${title}\n${shortDescription}`;
-    const qrSrc = `/api/qr?data=${encodeURIComponent(qrTarget)}`;
+    const qrTarget = `${partId}\n${title}\n${shortDescription ?? ""}`;
     const qrSize = Math.min(widthMm, heightMm) - 2 * PAD;
     const qrX = (widthMm - qrSize) / 2;
-    const qrY = (heightMm - qrSize) / 2;
+    const qrY = (heightMm - qrSize) / 2 + qrYOffset;
     return (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -46,7 +50,18 @@ export default function Label({
         style={{ border: "0.2px solid #ccc", display: "block" }}
       >
         <rect width={widthMm} height={heightMm} fill="white" />
-        <image href={qrSrc} x={qrX} y={qrY} width={qrSize} height={qrSize} />
+        <g transform={`translate(${qrX} ${qrY})`}>
+          <QRCodeSVG value={qrTarget} size={qrSize} marginSize={0} level="M" />
+          <rect
+            x={0}
+            y={0}
+            width={qrSize}
+            height={qrSize}
+            fill="none"
+            stroke="#ccc"
+            strokeWidth={0.2}
+          />
+        </g>
       </svg>
     );
   }
@@ -65,10 +80,16 @@ export default function Label({
   const textMaxW = widthMm - textX - PAD;
   const textAreaTop = TITLE_Y + 2;
   const textAreaBottom = heightMm - PAD;
-  const textY = (textAreaTop + textAreaBottom) / 2;
+  const textY = (textAreaTop + textAreaBottom) / 2 + descYOffset;
   const textMaxH = textAreaBottom - textAreaTop;
 
-  const charsPerLine = Math.max(1, Math.floor(textMaxW / (DESC_FONT * 0.55)));
+  const lines = splitTwoLines(shortDescription ?? "");
+  const longest = Math.max(1, ...lines.map((l: string) => l.length));
+  const fitByWidth = textMaxW / (longest * DESC_FONT * 0.55);
+  const fitByHeight = textMaxH / (2 * DESC_LINE_H);
+  const fontScale = Math.min(1, fitByWidth, fitByHeight);
+  const descFont = DESC_FONT * fontScale;
+  const descLineH = DESC_LINE_H * fontScale;
 
   return (
     <svg
@@ -113,14 +134,14 @@ export default function Label({
       <text
         x={textX}
         y={textY}
-        fontSize={DESC_FONT}
+        fontSize={descFont}
         fontFamily="sans-serif"
         fill="#333"
         dominantBaseline="middle"
         textAnchor="start"
       >
-        {wrapText(shortDescription, charsPerLine, textMaxH).map((line, i) => (
-          <tspan key={i} x={textX} dy={i === 0 ? 0 : DESC_LINE_H}>
+        {lines.map((line, i) => (
+          <tspan key={i} x={textX} dy={i === 0 ? 0 : descLineH}>
             {line}
           </tspan>
         ))}
@@ -129,21 +150,20 @@ export default function Label({
   );
 }
 
-function wrapText(text: string, charsPerLine: number, maxHeightMm: number): string[] {
-  const words = text.split(/\s+/);
-  const lines: string[] = [];
-  let current = "";
-  const maxLines = Math.max(1, Math.floor(maxHeightMm / DESC_LINE_H));
-
-  for (const word of words) {
-    if (lines.length >= maxLines) break;
-    if ((current + " " + word).trim().length <= charsPerLine) {
-      current = (current + " " + word).trim();
-    } else {
-      if (current) lines.push(current);
-      current = word;
+function splitTwoLines(text: string): string[] {
+  const words = text.split(/\s+/).filter(Boolean);
+  if (words.length === 0) return [""];
+  if (words.length === 1) return [words[0]];
+  let best: [string, string] = [words.slice(0, 1).join(" "), words.slice(1).join(" ")];
+  let bestMax = Math.max(best[0].length, best[1].length);
+  for (let i = 2; i < words.length; i++) {
+    const l1 = words.slice(0, i).join(" ");
+    const l2 = words.slice(i).join(" ");
+    const m = Math.max(l1.length, l2.length);
+    if (m < bestMax) {
+      bestMax = m;
+      best = [l1, l2];
     }
   }
-  if (current && lines.length < maxLines) lines.push(current);
-  return lines;
+  return best;
 }

@@ -1,9 +1,14 @@
 {
 	auto_https disable_redirects
-	local_certs
 	skip_install_trust
+	on_demand_tls {
+		ask http://backend:8000/api/types
+	}
 }
 
-https://192.168.11.31:8443 {
-	reverse_proxy localhost:3000
+:8443 {
+	tls internal {
+		on_demand
+	}
+	reverse_proxy frontend:3000
 }

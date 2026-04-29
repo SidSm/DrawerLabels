@@ -44,28 +44,39 @@ export default function PartsTable({ parts, selected, onToggle, onToggleAll }: P
           </tr>
         </thead>
         <tbody>
-          {parts.map((p) => (
-            <tr key={p.id} className="border-b hover:bg-gray-50">
-              <td className="p-2 text-center">
-                <input type="checkbox" checked={selected.has(p.id)}
-                  onChange={() => onToggle(p.id)} />
-              </td>
-              <td className="p-2 font-medium">{p.title}</td>
-              <td className="p-2 text-gray-600">{p.short_description}</td>
-              <td className="p-2">
-                <span className="text-xs bg-gray-100 px-2 py-0.5 rounded">{p.type}</span>
-              </td>
-              <td className="p-2 text-center text-gray-500">{p.urls.length}</td>
-              <td className="p-2 text-center flex gap-2 justify-center">
-                <a href={`/parts/${p.id}/edit`}
-                  className="text-[var(--color-primary)] hover:underline">Edit</a>
-                <button onClick={() => handleDelete(p.id)} disabled={deleting === p.id}
-                  className="text-red-500 hover:underline disabled:opacity-50">
-                  {deleting === p.id ? "…" : "Delete"}
-                </button>
-              </td>
-            </tr>
-          ))}
+          {parts.map((p) => {
+            const isSelected = selected.has(p.id);
+            return (
+              <tr
+                key={p.id}
+                onClick={() => onToggle(p.id)}
+                className={`border-b cursor-pointer select-none ${
+                  isSelected ? "bg-blue-50 hover:bg-blue-100" : "hover:bg-gray-50"
+                }`}
+              >
+                <td className="p-2 text-center">
+                  <input type="checkbox" checked={isSelected} readOnly
+                    className="pointer-events-none" />
+                </td>
+                <td className="p-2 font-medium">{p.title}</td>
+                <td className="p-2 text-gray-600">{p.short_description}</td>
+                <td className="p-2">
+                  <span className="text-xs bg-gray-100 px-2 py-0.5 rounded">{p.type}</span>
+                </td>
+                <td className="p-2 text-center text-gray-500">{p.urls.length}</td>
+                <td className="p-2 text-center" onClick={(e) => e.stopPropagation()}>
+                  <div className="flex gap-2 justify-center">
+                    <a href={`/parts/${p.id}/edit`}
+                      className="text-[var(--color-primary)] hover:underline">Edit</a>
+                    <button onClick={() => handleDelete(p.id)} disabled={deleting === p.id}
+                      className="text-red-500 hover:underline disabled:opacity-50">
+                      {deleting === p.id ? "…" : "Delete"}
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            );
+          })}
           {parts.length === 0 && (
             <tr>
               <td colSpan={6} className="p-6 text-center text-gray-400">

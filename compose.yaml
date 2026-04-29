@@ -1,0 +1,40 @@
+services:
+  backend:
+    build:
+      context: ./backend
+    restart: unless-stopped
+    volumes:
+      - ./backend/data:/app/backend/data
+      - ./backend/uploads:/app/backend/uploads
+      - ./backend/pics:/app/backend/pics
+      - ./backend/config:/app/backend/config
+      - "./BoltNutScrewTypesList - screws.csv:/app/BoltNutScrewTypesList - screws.csv:ro"
+    expose:
+      - "8000"
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        BACKEND_URL: http://backend:8000
+    restart: unless-stopped
+    expose:
+      - "3000"
+    depends_on:
+      - backend
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "8443:8443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - frontend
+
+volumes:
+  caddy_data:
+  caddy_config:

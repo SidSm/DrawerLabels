@@ -19,7 +19,7 @@ class ResolveIn(BaseModel):
 class ResolveOut(BaseModel):
     id: int
     title: str
-    short_description: str
+    short_description: Optional[str]
     type: str
     urls: List[str]
 

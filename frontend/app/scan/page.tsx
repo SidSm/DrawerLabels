@@ -6,7 +6,7 @@ import { api } from "@/lib/api";
 interface ScannedItem {
   id: number;
   title: string;
-  short_description: string;
+  short_description: string | null;
   type: string;
   urls: string[];
   qty: number;

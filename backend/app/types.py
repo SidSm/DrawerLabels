@@ -11,6 +11,8 @@ TYPES = [
     "inserts-flanged",
     "spacer-in-in",
     "spacer-in-out",
+    "spacer-in-in-plastic",
+    "spacer-in-out-plastic",
     "pin",
     "screw",
     "washer",

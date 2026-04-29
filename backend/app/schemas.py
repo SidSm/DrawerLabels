@@ -12,7 +12,7 @@ class PartURLOut(BaseModel):
 
 class PartCreate(BaseModel):
     title: str
-    short_description: str
+    short_description: Optional[str] = None
     type: str
     custom_image_path: Optional[str] = None
     urls: List[str] = []
@@ -29,7 +29,7 @@ class PartUpdate(BaseModel):
 class PartOut(BaseModel):
     id: int
     title: str
-    short_description: str
+    short_description: Optional[str]
     type: str
     custom_image_path: Optional[str]
     created_at: datetime

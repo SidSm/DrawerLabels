@@ -64,13 +64,13 @@ export default function PartForm({ initial }: Props) {
       const cleanUrls = urls.filter((u) => u.trim());
       if (initial) {
         await api.parts.update(initial.id, {
-          title, short_description: desc, type,
+          title, short_description: desc.trim() || null, type,
           custom_image_path: customImagePath || null,
           urls: cleanUrls,
         });
       } else {
         await api.parts.create({
-          title, short_description: desc, type,
+          title, short_description: desc.trim() || null, type,
           custom_image_path: customImagePath || null,
           urls: cleanUrls,
         });
@@ -98,7 +98,7 @@ export default function PartForm({ initial }: Props) {
         <label className="block text-sm font-medium mb-1">
           Short description <span className="text-gray-400 font-normal">(max 2 words, 12 chars each)</span>
         </label>
-        <input required className="border rounded px-2 py-1 w-full"
+        <input className="border rounded px-2 py-1 w-full"
           value={desc} onChange={(e) => setDesc(e.target.value)} />
         {descError && <p className="text-red-600 text-xs mt-1">{descError}</p>}
       </div>
