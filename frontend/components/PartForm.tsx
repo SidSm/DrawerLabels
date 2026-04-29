@@ -105,12 +105,15 @@ export default function PartForm({ initial }: Props) {
 
       <div>
         <label className="block text-sm font-medium mb-1">Type</label>
+        <p className="text-xs text-gray-500 mb-2">
+          Picks the icon shown on the printed label. Choose <code>custom</code> to upload your own image below.
+        </p>
         <TypeCombobox value={type} onChange={setType} />
       </div>
 
       <div>
         <label htmlFor="custom-image" className="block text-sm font-medium mb-1">
-          Custom image
+          Custom image <span className="text-gray-400 font-normal">(only used when type is <code>custom</code>)</span>
         </label>
         <div className="flex items-center gap-3">
           <label

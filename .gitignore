@@ -12,7 +12,6 @@ out/
 *.log
 
 # Project data
-backend/data/
 backend/uploads/
 !backend/uploads/.gitkeep
 

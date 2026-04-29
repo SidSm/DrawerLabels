@@ -1,80 +1,24 @@
-TYPES = [
-    "bearing",
-    "bearing-plastic",
-    "bolt-black-flat",
-    "bolt-black-pan",
-    "bolt-black-socket",
-    "bolt-flat",
-    "bolt-pan",
-    "bolt-pan-plastic",
-    "bolt-plastic-flat",
-    "bolt-socket",
-    "button",
-    "button-black",
-    "capacitor",
-    "chip-back-boost",
-    "converter",
-    "dc-cable-angled",
-    "dc-terminal",
-    "deans-female",
-    "deans-male",
-    "deans-plug",
-    "diode",
-    "drill-insert",
-    "ftdi",
-    "insert",
-    "insert-flanged",
-    "insert-soldered",
-    "jst-board",
-    "jst-cable",
-    "jst-female",
-    "jst-male-10-pin",
-    "jst-male-6-pin",
-    "jst-ph-cable",
-    "jst-pins",
-    "lenses",
-    "level-convertor",
-    "locknut",
-    "magnet",
-    "nails",
-    "nut",
-    "nut-plastic",
-    "pb-cable-4-pin",
-    "pb-female-4-pin",
-    "pb-mix",
-    "ph-cable",
-    "ph-female-straight",
-    "ph-male-angled",
-    "ph-male-straight",
-    "pin",
-    "resistor",
-    "rivet",
-    "rivet-blind",
-    "rivet-plastic",
-    "rj-male",
-    "screw-flat",
-    "screw-pan",
-    "spacer-in-in",
-    "spacer-in-in-plastic",
-    "spacer-in-out",
-    "spacer-in-out-plastic",
-    "switch",
-    "wago",
-    "washer",
-    "washer-plastic",
-    "xt-female",
-    "xt-female-angled",
-    "xt-male",
-    "custom",
-]
+from pathlib import Path
+
+PICS_DIR = Path(__file__).parent.parent / "pics"
+EXTS = ("png", "jpg", "jpeg", "webp")
+EXCLUDE_STEMS = {"icons", "arduino_nano"}
+
+
+def _scan_types() -> list[str]:
+    seen: set[str] = set()
+    for p in PICS_DIR.iterdir():
+        if p.suffix.lstrip(".").lower() in EXTS and p.stem not in EXCLUDE_STEMS:
+            seen.add(p.stem)
+    return sorted(seen) + ["custom"]
+
 
 def _resolve_type_image(type_name: str) -> str:
-    from pathlib import Path
-    pics = Path(__file__).parent.parent / "pics"
-    for ext in ("png", "jpg", "jpeg", "webp"):
-        if (pics / f"{type_name}.{ext}").exists():
+    for ext in EXTS:
+        if (PICS_DIR / f"{type_name}.{ext}").exists():
             return f"pics/{type_name}.{ext}"
     return f"pics/{type_name}.png"  # fallback (may 404, but shows intent)
 
 
+TYPES = _scan_types()
 TYPE_IMAGE: dict[str, str] = {t: _resolve_type_image(t) for t in TYPES if t != "custom"}
