@@ -79,6 +79,39 @@ export const api = {
           body: JSON.stringify({ payload }),
         },
       ),
-    exportUrl: "/api/scan/export",
+  },
+  shopping: {
+    list: () => req<ShoppingItem[]>("/shopping"),
+    add: (part_id: number, qty = 1) =>
+      req<ShoppingItem>("/shopping/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ part_id, qty }),
+      }),
+    setQty: (item_id: number, qty: number) =>
+      req<ShoppingItem>(`/shopping/${item_id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ qty }),
+      }),
+    remove: (item_id: number) =>
+      req<void>(`/shopping/${item_id}`, { method: "DELETE" }),
+    clear: () => req<void>("/shopping/clear", { method: "POST" }),
+    exportUrl: "/api/shopping/export",
   },
 };
+
+export interface ShoppingItem {
+  id: number;
+  part_id: number;
+  qty: number;
+  created_at: string;
+  updated_at: string;
+  part: {
+    id: number;
+    title: string;
+    short_description: string | null;
+    type: string;
+    urls: string[];
+  } | null;
+}

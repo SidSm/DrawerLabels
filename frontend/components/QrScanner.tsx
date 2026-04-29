@@ -26,6 +26,11 @@ async function pickDeviceId(): Promise<string | undefined> {
 export default function QrScanner({ onDecode, onError }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const controlsRef = useRef<IScannerControls | null>(null);
+  const onDecodeRef = useRef(onDecode);
+  const onErrorRef = useRef(onError);
+
+  useEffect(() => { onDecodeRef.current = onDecode; }, [onDecode]);
+  useEffect(() => { onErrorRef.current = onError; }, [onError]);
 
   useEffect(() => {
     const reader = new BrowserMultiFormatReader();
@@ -45,7 +50,7 @@ export default function QrScanner({ onDecode, onError }: Props) {
           deviceId,
           videoRef.current,
           (result) => {
-            if (result) onDecode(result.getText());
+            if (result) onDecodeRef.current(result.getText());
           },
         );
         if (cancelled) controls.stop();
@@ -53,11 +58,11 @@ export default function QrScanner({ onDecode, onError }: Props) {
       } catch (e) {
         const err = e as Error;
         if (err.name === "NotAllowedError") {
-          onError?.(new Error("Camera permission denied."));
+          onErrorRef.current?.(new Error("Camera permission denied."));
         } else if (err.name === "NotFoundError") {
-          onError?.(new Error("No camera found."));
+          onErrorRef.current?.(new Error("No camera found."));
         } else {
-          onError?.(err);
+          onErrorRef.current?.(err);
         }
       }
     })();
@@ -67,7 +72,7 @@ export default function QrScanner({ onDecode, onError }: Props) {
       controlsRef.current?.stop();
       controlsRef.current = null;
     };
-  }, [onDecode, onError]);
+  }, []);
 
   return (
     <video

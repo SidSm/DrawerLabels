@@ -1,38 +1,62 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
 import QrScanner from "@/components/QrScanner";
-import { api } from "@/lib/api";
+import { api, type ShoppingItem } from "@/lib/api";
 
-interface ScannedItem {
+interface PendingItem {
   id: number;
   title: string;
   short_description: string | null;
   type: string;
   urls: string[];
-  qty: number;
 }
 
 type Mode = "idle" | "scanning" | "confirming" | "reviewing";
 
-const STORAGE_KEY = "scan-session";
+const LEGACY_KEY = "scan-session";
+const POLL_MS = 2000;
 
 export default function ScanPage() {
   const [mode, setMode] = useState<Mode>("idle");
-  const [items, setItems] = useState<ScannedItem[]>([]);
-  const [pending, setPending] = useState<ScannedItem | null>(null);
+  const [items, setItems] = useState<ShoppingItem[]>([]);
+  const [pending, setPending] = useState<PendingItem | null>(null);
   const [error, setError] = useState<string | null>(null);
   const busyRef = useRef(false);
 
-  useEffect(() => {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      try { setItems(JSON.parse(raw)); } catch { /* ignore */ }
+  const refresh = useCallback(async () => {
+    try {
+      setItems(await api.shopping.list());
+    } catch (e) {
+      setError((e as Error).message);
     }
   }, []);
 
+  // One-time migration of any pre-server localStorage list, then initial fetch.
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-  }, [items]);
+    (async () => {
+      const raw = localStorage.getItem(LEGACY_KEY);
+      if (raw) {
+        try {
+          const legacy = JSON.parse(raw) as { id: number; qty?: number }[];
+          for (const l of legacy) {
+            const qty = Math.max(1, l.qty ?? 1);
+            await api.shopping.add(l.id, qty);
+          }
+        } catch {
+          // ignore corrupt
+        }
+        localStorage.removeItem(LEGACY_KEY);
+      }
+      await refresh();
+    })();
+  }, [refresh]);
+
+  // Poll while page is open. Pauses while confirming a scan to avoid race with optimistic state.
+  useEffect(() => {
+    if (mode === "confirming") return;
+    const t = setInterval(refresh, POLL_MS);
+    return () => clearInterval(t);
+  }, [mode, refresh]);
 
   const handleDecode = useCallback(async (text: string) => {
     if (busyRef.current) return;
@@ -40,7 +64,7 @@ export default function ScanPage() {
     setError(null);
     try {
       const resolved = await api.scan.resolve(text);
-      setPending({ ...resolved, qty: 1 });
+      setPending(resolved);
       setMode("confirming");
     } catch (e) {
       setError((e as Error).message);
@@ -48,29 +72,29 @@ export default function ScanPage() {
     }
   }, []);
 
-  const addPending = () => {
+  const commitPending = async () => {
     if (!pending) return;
-    setItems((prev) => {
-      const existing = prev.find((i) => i.id === pending.id);
-      if (existing) {
-        return prev.map((i) => i.id === pending.id ? { ...i, qty: i.qty + 1 } : i);
-      }
-      return [...prev, pending];
-    });
+    try {
+      await api.shopping.add(pending.id, 1);
+    } catch (e) {
+      setError((e as Error).message);
+    }
   };
 
-  const onContinue = () => {
-    addPending();
+  const onContinue = async () => {
+    await commitPending();
     setPending(null);
     busyRef.current = false;
     setMode("scanning");
+    refresh();
   };
 
-  const onFinish = () => {
-    addPending();
+  const onFinish = async () => {
+    await commitPending();
     setPending(null);
     busyRef.current = false;
     setMode("reviewing");
+    refresh();
   };
 
   const onSkip = () => {
@@ -79,30 +103,31 @@ export default function ScanPage() {
     setMode("scanning");
   };
 
-  const removeItem = (id: number) => {
-    setItems((prev) => prev.filter((i) => i.id !== id));
+  const removeItem = async (itemId: number) => {
+    await api.shopping.remove(itemId);
+    refresh();
   };
 
-  const clearAll = () => {
-    setItems([]);
-    localStorage.removeItem(STORAGE_KEY);
+  const setQty = async (itemId: number, qty: number) => {
+    if (qty <= 0) {
+      await api.shopping.remove(itemId);
+    } else {
+      await api.shopping.setQty(itemId, qty);
+    }
+    refresh();
+  };
+
+  const clearAll = async () => {
+    await api.shopping.clear();
+    refresh();
     setMode("idle");
   };
 
-  const exportCsv = async () => {
-    const res = await fetch(api.scan.exportUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ids: items.map((i) => i.id) }),
-    });
-    const blob = await res.blob();
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "shopping-list.csv";
-    a.click();
-    URL.revokeObjectURL(url);
+  const exportCsv = () => {
+    window.location.href = api.shopping.exportUrl;
   };
+
+  const totalQty = items.reduce((n, i) => n + i.qty, 0);
 
   return (
     <div className="space-y-4">
@@ -111,7 +136,7 @@ export default function ScanPage() {
       {mode === "idle" && (
         <div className="space-y-3">
           <p className="text-gray-600">
-            Scan QR codes on drawer labels. Each scan adds the part to your list.
+            Scan QR codes on drawer labels. List is shared across devices — scan on phone, view on PC.
           </p>
           <div className="flex gap-3">
             <button
@@ -120,14 +145,12 @@ export default function ScanPage() {
             >
               Start scanning
             </button>
-            {items.length > 0 && (
-              <button
-                onClick={() => setMode("reviewing")}
-                className="border px-5 py-2 rounded hover:bg-gray-100"
-              >
-                Review list ({items.length})
-              </button>
-            )}
+            <button
+              onClick={() => setMode("reviewing")}
+              className="border px-5 py-2 rounded hover:bg-gray-100"
+            >
+              Review list ({totalQty})
+            </button>
           </div>
         </div>
       )}
@@ -140,7 +163,7 @@ export default function ScanPage() {
               onClick={() => setMode("reviewing")}
               className="border px-5 py-2 rounded hover:bg-gray-100"
             >
-              Stop ({items.length} scanned)
+              Stop ({totalQty} in list)
             </button>
           </div>
           {error && <p className="text-red-600 text-sm">{error}</p>}
@@ -183,7 +206,7 @@ export default function ScanPage() {
             <table className="w-full text-sm border">
               <thead className="bg-gray-100 text-left">
                 <tr>
-                  <th className="p-2">Qty</th>
+                  <th className="p-2 w-24">Qty</th>
                   <th className="p-2">Title</th>
                   <th className="p-2">Description</th>
                   <th className="p-2">URLs</th>
@@ -193,11 +216,25 @@ export default function ScanPage() {
               <tbody>
                 {items.map((i) => (
                   <tr key={i.id} className="border-t">
-                    <td className="p-2">{i.qty}</td>
-                    <td className="p-2 font-medium">{i.title}</td>
-                    <td className="p-2 text-gray-700">{i.short_description}</td>
                     <td className="p-2">
-                      {i.urls.map((u, idx) => (
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => setQty(i.id, i.qty - 1)}
+                          className="border px-2 rounded hover:bg-gray-100"
+                          aria-label="decrease"
+                        >−</button>
+                        <span className="w-6 text-center">{i.qty}</span>
+                        <button
+                          onClick={() => setQty(i.id, i.qty + 1)}
+                          className="border px-2 rounded hover:bg-gray-100"
+                          aria-label="increase"
+                        >+</button>
+                      </div>
+                    </td>
+                    <td className="p-2 font-medium">{i.part?.title ?? <span className="text-gray-400">(deleted)</span>}</td>
+                    <td className="p-2 text-gray-700">{i.part?.short_description}</td>
+                    <td className="p-2">
+                      {i.part?.urls.map((u, idx) => (
                         <a
                           key={idx}
                           href={u}
