@@ -2,7 +2,7 @@ from pathlib import Path
 
 PICS_DIR = Path(__file__).parent.parent / "pics"
 EXTS = ("png", "jpg", "jpeg", "webp")
-EXCLUDE_STEMS = {"icons", "arduino_nano"}
+EXCLUDE_STEMS = {"icons"}
 
 
 def _scan_types() -> list[str]:
