@@ -27,6 +27,35 @@ require_docker() {
     fi
 }
 
+ensure_docker_login_item() {
+    # Add Docker.app to user's Login Items (no sudo, idempotent). macOS 13+.
+    local app="/Applications/Docker.app"
+    [[ -d "$app" ]] || return 0
+    if osascript -e 'tell application "System Events" to get the name of every login item' 2>/dev/null | grep -qi 'Docker'; then
+        echo "Docker already in Login Items."
+    else
+        osascript -e 'tell application "System Events" to make login item at end with properties {path:"/Applications/Docker.app", hidden:true}' >/dev/null \
+            && echo "Added Docker.app to Login Items." \
+            || echo "WARN: could not add Docker to Login Items. Add manually: System Settings → General → Login Items." >&2
+    fi
+}
+
+print_boot_instructions() {
+    cat <<'EOF'
+
+────────────────────────────────────────────────────────────────────
+The LaunchAgent fires at LOGIN (per-user), not at cold boot.
+For full power-button → app-running behavior:
+
+  1. System Settings → Users & Groups → "Automatically log in as" → pick user.
+     (Disabled if FileVault is on. Disable FileVault if you want headless boot.)
+  2. Docker Desktop → Settings → General → "Start Docker Desktop when you sign in" → ON.
+     (Already ensured via Login Items above, but flip the toggle inside DD too if it asks.)
+  3. Reboot to test.
+────────────────────────────────────────────────────────────────────
+EOF
+}
+
 uninstall() {
     if [[ -f "$PLIST" ]]; then
         launchctl bootout "gui/$(id -u)/${LABEL}" 2>/dev/null || true
@@ -69,9 +98,12 @@ EOF
     launchctl bootstrap "gui/$(id -u)" "$PLIST"
     launchctl kickstart -k "gui/$(id -u)/${LABEL}"
 
+    ensure_docker_login_item
+
     echo "Installed: ${PLIST}"
     echo "Logs:      ${OUT_LOG} / ${ERR_LOG}"
     echo "Stack will auto-start at login. To remove: $0 --uninstall"
+    print_boot_instructions
 }
 
 require_macos
